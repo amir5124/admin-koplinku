@@ -15,6 +15,13 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Di file CSS global atau komponen */
+.dark input,
+.dark select {
+  color: #e5e7eb;
+  /* Contoh warna abu-abu terang */
+}
+
 a {
   font-weight: 500;
   color: #646cff;
