@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
-// Impor ikon yang Anda inginkan dari react-icons
 import { FaFileExcel } from 'react-icons/fa';
 
 const AdminDashboard = () => {
@@ -12,6 +11,8 @@ const AdminDashboard = () => {
     const [jenisSimpanan, setJenisSimpanan] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
+    // State untuk total nominal dari backend
+    const [totalSukses, setTotalSukses] = useState(0);
 
     const API_BASE_URL = 'https://kop.siappgo.id';
 
@@ -27,9 +28,12 @@ const AdminDashboard = () => {
                 }
             });
             setPaymentHistory(res.data.history);
+            // Ambil total nominal dari respons backend dan perbarui state
+            setTotalSukses(res.data.total_nominal || 0);
         } catch (err) {
             setError('Gagal memuat data riwayat pembayaran. Mohon coba lagi.');
             setPaymentHistory([]);
+            setTotalSukses(0);
         } finally {
             setIsLoading(false);
         }
@@ -51,6 +55,16 @@ const AdminDashboard = () => {
     useEffect(() => {
         fetchPaymentHistory();
     }, [searchTerm, filterStatus, filterSimpanan]);
+
+    // Hapus useEffect ini karena total sudah dihitung di backend
+    // useEffect(() => {
+    //     if (paymentHistory && Array.isArray(paymentHistory)) {
+    //         const total = paymentHistory
+    //             .filter(item => item.status_pembayaran === 'SUKSES')
+    //             .reduce((sum, item) => sum + item.jumlah, 0);
+    //         setTotalSukses(total);
+    //     }
+    // }, [paymentHistory]);
 
     const exportToExcel = () => {
         const dataToExport = paymentHistory.filter(item => item.status_pembayaran === 'SUKSES').map(item => ({
@@ -74,8 +88,6 @@ const AdminDashboard = () => {
     return (
         <div className="bg-gray-100 min-h-screen p-8">
             <div className="container mx-auto">
-
-
                 <div className="bg-white rounded-xl shadow-lg p-6 mb-8 transform transition-transform duration-300">
                     <h2 className="text-2xl font-semibold text-gray-700 mb-4">Opsi Filter & Pencarian</h2>
                     <div className="flex flex-col md:flex-row items-center gap-4">
@@ -114,9 +126,11 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                {/* Menambahkan conditional rendering */}
                 {filterStatus === 'SUKSES' && (
-                    <div className="flex justify-end mb-4">
+                    <div className="flex flex-col md:flex-row justify-between items-center mb-4">
+                        <span className="text-xl font-bold text-green-600 mb-2 md:mb-0">
+                            Total Transaksi Sukses: {formatCurrency(totalSukses)}
+                        </span>
                         <button
                             onClick={exportToExcel}
                             className="bg-gray-200 text-gray-800 px-6 py-2 rounded-lg shadow-md hover:bg-gray-300 transition-colors flex items-center space-x-2"
@@ -129,6 +143,7 @@ const AdminDashboard = () => {
 
                 <div className="bg-white rounded-xl shadow-lg p-6">
                     <h2 className="text-2xl font-semibold text-gray-700 mb-6">Riwayat Pembayaran</h2>
+
                     {isLoading ? (
                         <div className="flex justify-center items-center h-48">
                             <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
